@@ -228,6 +228,36 @@ const TAGS={prog:["t-prog","Programação"],emp:["t-emp","Emprego"],enem:["t-ene
 const DIAS=["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
 const DIAS_AB=["dom","seg","ter","qua","qui","sex","sáb"];
 
+/* ======== FERIADOS (nacionais + Bahia) ======== */
+/* Fixos: MM-DD -> nome */
+const FERIADOS_FIXOS={
+ "01-01":"Confraternização Universal","04-21":"Tiradentes","05-01":"Dia do Trabalho",
+ "06-24":"São João","07-02":"Independência da Bahia","09-07":"Independência do Brasil",
+ "10-12":"Nossa Senhora Aparecida","11-02":"Finados","11-15":"Proclamação da República",
+ "11-20":"Dia da Consciência Negra","12-25":"Natal"
+};
+/* Páscoa (algoritmo de Meeus) -> feriados móveis */
+function pascoa(ano){
+ const a=ano%19,b=Math.floor(ano/100),c=ano%100,d=Math.floor(b/4),e=b%4,
+ f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),hh=(19*a+b-d-g+15)%30,
+ i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-hh-k)%7,m=Math.floor((a+11*hh+22*l)/451),
+ mes=Math.floor((hh+l-7*m+114)/31),dia=((hh+l-7*m+114)%31)+1;
+ return new Date(ano,mes-1,dia);
+}
+const _feriadosCache={};
+function feriadosDoAno(ano){
+ if(_feriadosCache[ano])return _feriadosCache[ano];
+ const map={};
+ for(const md in FERIADOS_FIXOS)map[ano+"-"+md]=FERIADOS_FIXOS[md];
+ const pas=pascoa(ano);
+ const add=(offset,nome)=>{const d=new Date(pas);d.setDate(d.getDate()+offset);
+   map[iso(d)]=nome;};
+ add(-48,"Segunda de Carnaval");add(-47,"Terça de Carnaval");
+ add(-2,"Sexta-feira Santa");add(60,"Corpus Christi");
+ return _feriadosCache[ano]=map;
+}
+function feriado(dateIso){return feriadosDoAno(+dateIso.slice(0,4))[dateIso]||null}
+
 /* Períodos: manhã 7-11:59, tarde 12-17:59, noite 18-23:59, madrugada 0-6:59 */
 function periodNow(h){return h>=7&&h<12?"manha":h>=12&&h<18?"tarde":h>=18?"noite":"madruga"}
 const PERIOD_ORDER={manha:0,tarde:1,noite:2};
@@ -236,47 +266,47 @@ const PERIOD_META={manha:["🌅 Manhã","7h às 11h59"],tarde:["☀️ Tarde","1
 /* ======== PLANO (Futuro) — cada tarefa com período ======== */
 const WEEKS=[
  {start:"2026-06-28",n:"Semana 0",t:"Reta final do SENAI",
-  daily:[{id:"senai",tag:"prog",p:"tarde",days:[1,2,3,4,5],l:"Ir à aula do SENAI",s:"Seg a sex. Fechar o curso com chave de ouro."}],
+  daily:[{id:"senai",tag:"prog",p:"tarde",days:[1,2,3,4,5],skipHoliday:true,l:"Ir à aula do SENAI",s:"Seg a sex. Fechar o curso com chave de ouro."}],
   miss:[{id:"sites",tag:"emp",l:"Criar contas: Indeed, InfoJobs, Gupy e Catho",s:"Meia hora e as vagas chegam até você."},
         {id:"alertas",tag:"emp",l:"Ativar alertas de vaga",s:"Suporte N1, help desk, assistente de TI — Salvador e Lauro de Freitas."}]},
  {start:"2026-07-05",n:"Semana 1",t:"HTML — Arrancada",
-  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"Buscar e candidatar vagas",s:"Usesoft, Redemix, MVS, Lanlink, Montreal, Konecta, Wilson Sons, Irmã Dulce, Salvador Shopping, Just Travel."},
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],skipHoliday:true,l:"Buscar e candidatar vagas",s:"Usesoft, Redemix, MVS, Lanlink, Montreal, Konecta, Wilson Sons, Irmã Dulce, Salvador Shopping, Just Travel."},
          {id:"prog",tag:"prog",p:"tarde",l:"Curso HTML/CSS: próxima aula (Módulo A, 1–8)",s:"Curso em Vídeo, Guanabara. Código na mão."}],
   miss:[{id:"linkedin",tag:"marco",l:"Arrumar o LinkedIn (uma tarde inteira)",s:"Foto boa, título pronto, Open to Work, seguir as 10 empresas."},
         {id:"lista",tag:"emp",l:"Candidatar nas 10 empresas da lista",s:"Com o currículo de TI."}]},
  {start:"2026-07-12",n:"Semana 2",t:"HTML — parte 2",
-  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:"Responder recrutador em menos de 24h."},
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],skipHoliday:true,l:"5 candidaturas hoje",s:"Responder recrutador em menos de 24h."},
          {id:"prog",tag:"prog",p:"tarde",l:"Curso HTML: Módulo A, aulas 9–16",s:""}],
   miss:[{id:"github",tag:"marco",l:"Criar conta no GitHub (15 min)",s:"Usuário profissional, foto e bio de 1 linha."},
         {id:"red0",tag:"enem",l:"Ler 1 redação nota 1000 comentada",s:""}]},
  {start:"2026-07-19",n:"Semana 3",t:"Fechando HTML, abrindo CSS",
-  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:""},
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],skipHoliday:true,l:"5 candidaturas hoje",s:""},
          {id:"prog",tag:"prog",p:"tarde",l:"Fechar Módulo A + começar CSS",s:"Cores, fontes, seletores."}],
   miss:[{id:"red1",tag:"enem",l:"Escrever a 1ª redação (1h cronometrada)",s:"Vai sair ruim — é pra isso que serve."}]},
  {start:"2026-07-26",n:"Semana 4",t:"CSS + Portfólio v1",
-  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:""},
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],skipHoliday:true,l:"5 candidaturas hoje",s:""},
          {id:"prog",tag:"prog",p:"tarde",l:"CSS: box model + montar a página pessoal",s:""}],
   miss:[{id:"pagina1",tag:"marco",l:"MARCO: Página pessoal v1 pronta",s:"100% na mão, sem IA. Feia mesmo."},
         {id:"red2",tag:"enem",l:"2ª redação",s:""}]},
  {start:"2026-08-02",n:"Semana 5",t:"JavaScript começa",
-  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:""},
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],skipHoliday:true,l:"5 candidaturas hoje",s:""},
          {id:"prog",tag:"prog",p:"tarde",l:"Curso JS: Módulos A e B",s:"Você já sabe quase tudo isso do C."},
          {id:"enem",tag:"enem",p:"noite",l:"Matemática 30 min",s:"Porcentagem, regra de três (Prof. Ferretto)."}],
   miss:[{id:"beec",tag:"prog",l:"3 problemas do beecrowd em C",s:"Categoria Iniciante."}]},
  {start:"2026-08-09",n:"Semana 6",t:"JS — condições",
-  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:""},
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],skipHoliday:true,l:"5 candidaturas hoje",s:""},
          {id:"prog",tag:"prog",p:"tarde",l:"JS: if/else e switch",s:"Sintaxe quase idêntica ao C."},
          {id:"enem",tag:"enem",p:"noite",l:"Matemática 30 min (funções)",s:""}],
   miss:[{id:"beejs",tag:"marco",l:"Traduzir os 3 problemas de C pra JS",s:"O exercício mais valioso do plano."},
         {id:"red3",tag:"enem",l:"3ª redação",s:""}]},
  {start:"2026-08-16",n:"Semana 7",t:"JS — loops e arrays",
-  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:""},
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],skipHoliday:true,l:"5 candidaturas hoje",s:""},
          {id:"prog",tag:"prog",p:"tarde",l:"JS: while, for e vetores",s:""},
          {id:"enem",tag:"enem",p:"noite",l:"Matemática 30 min",s:""}],
   miss:[{id:"bee4",tag:"prog",l:"4 problemas novos no beecrowd em JS",s:""},
         {id:"siml",tag:"enem",l:"Mini-simulado de linguagens (20 questões)",s:""}]},
  {start:"2026-08-23",n:"Semana 8",t:"JS + Portfólio no GitHub",
-  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:""},
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],skipHoliday:true,l:"5 candidaturas hoje",s:""},
          {id:"prog",tag:"prog",p:"tarde",l:"JS: funções + DOM",s:"Fazer um botão da sua página funcionar."},
          {id:"enem",tag:"enem",p:"noite",l:"Matemática 30 min",s:""}],
   miss:[{id:"pagina2",tag:"marco",l:"MARCO: Página v2 + tudo no GitHub",s:"Página + TechBridge com README."},
@@ -370,10 +400,15 @@ function overdueChores(){
 }
 
 /* conjunto exigido do dia (para vida/sequência) */
-function activeOn(q,wd){return !q.days||q.days.includes(wd)}
+function activeOn(q,dateIso){
+  const wd=new Date(dateIso+"T00:00:00").getDay();
+  if(q.days&&!q.days.includes(wd))return false;
+  if(q.skipHoliday&&feriado(dateIso))return false;
+  return true;
+}
 function requiredOf(dateIso){
-  const d=new Date(dateIso+"T00:00:00"),wd=d.getDay();
-  return [...weekOf(d).daily,...CARE_DAILY].filter(q=>activeOn(q,wd)).concat(choresOn(dateIso));
+  const d=new Date(dateIso+"T00:00:00");
+  return [...weekOf(d).daily,...CARE_DAILY].filter(q=>activeOn(q,dateIso)).concat(choresOn(dateIso));
 }
 function doneCount(dateIso){
   const c=state.daily[dateIso]||[];
@@ -398,7 +433,8 @@ function tick(){
   el("clock").textContent=n.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
   el("dateStr").textContent=n.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
   const h=n.getHours();
-  el("greet").textContent=h<5?"Madrugada?? A Brasa quer te ver dormindo.":h<12?"Bom dia, Eder ☀":h<18?"Boa tarde, Eder":"Boa noite, Eder 🌙";
+  const fer=feriado(TODAY);
+  el("greet").textContent=(h<5?"Madrugada?? A Brasa quer te ver dormindo.":h<12?"Bom dia, Eder ☀":h<18?"Boa tarde, Eder":"Boa noite, Eder 🌙")+(fer?` · 🎉 Feriado: ${fer} — sem SENAI nem candidaturas hoje`:"");
 }
 tick();setInterval(tick,30000);
 
@@ -484,9 +520,8 @@ function renderPeriods(){
     const toggle=q.occ?()=>toggleChore(q.occ):()=>toggleDaily(q.id);
     return questCard(q,on,toggle,{late:q.late});
   };
-  const wd=today.getDay();
   const tasksOf=p=>{
-    const t=[...WK.daily,...CARE_DAILY].filter(q=>(q.p||"any")===p&&activeOn(q,wd));
+    const t=[...WK.daily,...CARE_DAILY].filter(q=>(q.p||"any")===p&&activeOn(q,TODAY));
     if(p==="noite")t.push(...BONUS);
     return t;
   };
@@ -524,7 +559,7 @@ function renderPeriods(){
     }
   }
   // qualquer hora: banho etc. + chores de hoje + atrasadas
-  [...WK.daily,...CARE_DAILY].filter(q=>(q.p||"any")==="any"&&activeOn(q,today.getDay())).forEach(q=>el("p-any").appendChild(cardOf(q)));
+  [...WK.daily,...CARE_DAILY].filter(q=>(q.p||"any")==="any"&&activeOn(q,TODAY)).forEach(q=>el("p-any").appendChild(cardOf(q)));
   choresOn(TODAY).forEach(q=>el("p-any").appendChild(cardOf({...q}))); 
   overdueChores().forEach(q=>el("p-any").appendChild(cardOf({...q})));
   if(!el("p-any").children.length)
