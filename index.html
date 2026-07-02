@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0e1118">
+<title>Brasa — Missões do Eder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1118; --card:#161c27; --line:#232c3d;
+    --txt:#e8ecf3; --mut:#8b93a5; --blue:#2d7ff9; --blue-soft:#173156;
+    --green:#3ddc84; --amber:#ffb020; --red:#ff5d5d;
+    --r:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;
+       min-height:100vh;padding:18px 14px 70px;
+       background-image:radial-gradient(ellipse 80% 40% at 50% -10%, #16233d 0%, transparent 60%)}
+  .wrap{max-width:560px;margin:0 auto}
+  h1,h2,h3,.pet-name,.clock,.val{font-family:'Chakra Petch',sans-serif}
+
+  .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+  .brand{font-size:11px;letter-spacing:.18em;color:var(--blue);text-transform:uppercase;font-weight:700;font-family:'Chakra Petch'}
+  h1{font-size:24px;line-height:1.1;margin-top:2px}
+  .datebadge{text-align:right}
+  .clock{font-size:22px;line-height:1}
+  .datesm{font-size:11px;color:var(--mut);text-transform:capitalize}
+  .greet{font-size:12px;color:var(--mut);margin-top:2px}
+
+  /* ===== MASCOTE ===== */
+  .pet{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+       padding:16px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden}
+  .mascote{width:104px;height:118px;margin:0 auto;display:block}
+  @keyframes dance{0%,100%{transform:rotate(-3deg) scale(1)}50%{transform:rotate(3deg) scale(1.05)}}
+  @keyframes flick{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.94)}}
+  .m-hi .mascote{animation:dance 1.5s ease-in-out infinite;transform-origin:50% 90%}
+  .m-ok .mascote{animation:flick 2.4s ease-in-out infinite;transform-origin:50% 100%}
+  .m-low .mascote{transform:scale(.82);opacity:.85}
+  .m-dead .mascote{filter:grayscale(1);opacity:.9}
+  .pet-name{font-size:17px;margin-top:6px}
+  .lvl{color:var(--amber);font-size:12px;font-family:'Chakra Petch'}
+  .mood{font-size:13px;color:var(--mut);margin-top:4px;min-height:18px}
+  .hp{height:10px;background:#0b0e14;border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-top:10px}
+  .hp i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#ff7a2d,var(--amber));transition:width .5s}
+  .hp i.crit{background:var(--red)}
+  .hp-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--mut);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
+  .revive{margin-top:12px;background:var(--amber);color:#2a1600;border:none;font-weight:700;
+          font-family:'Chakra Petch';font-size:14px;padding:10px 18px;border-radius:10px;cursor:pointer}
+  .feed{position:absolute;font-size:15px;font-weight:700;color:var(--green);pointer-events:none;animation:rise 1s forwards}
+  @keyframes rise{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-34px)}}
+
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+  .stat .lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+  .stat .val{font-size:20px;color:var(--amber);margin-top:2px}
+  .stat .val.zero{color:var(--mut)}
+  .stat .sub{font-size:11px;color:var(--mut)}
+
+  .xp{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:6px}
+  .xp-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px}
+  .xp-head b{color:var(--txt)} .xp-head span{color:var(--mut)}
+  .bar{height:14px;background:#0b0e14;border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+  .fill{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,var(--blue),#59c2ff);
+        transition:width .45s cubic-bezier(.22,1,.36,1)}
+  .fill.done{background:linear-gradient(90deg,#2bb673,var(--green))}
+  .xp-msg{font-size:12px;color:var(--mut);margin-top:8px}
+  .xp-msg.win{color:var(--green);font-weight:600}
+  .xp-msg.late{color:var(--amber)}
+
+  h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin:22px 0 10px;display:flex;align-items:center;gap:8px}
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+  .period-note{font-size:11px;color:var(--mut);margin:-6px 0 10px}
+
+  .quest{display:flex;gap:12px;align-items:flex-start;background:var(--card);
+         border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;
+         cursor:pointer;transition:border-color .15s, transform .06s;user-select:none;position:relative}
+  .quest:active{transform:scale(.985)}
+  .quest.on{border-color:#274a2f;background:linear-gradient(180deg,#15231a,#131b22)}
+  .quest.locked{opacity:.45;cursor:default;border-style:dashed}
+  .quest.locked:active{transform:none}
+  .box{width:24px;height:24px;flex:none;border-radius:7px;border:2px solid #3a465c;margin-top:1px;
+       display:flex;align-items:center;justify-content:center;font-size:14px;color:transparent;transition:all .15s}
+  .quest.on .box{background:var(--green);border-color:var(--green);color:#08210f}
+  .qtitle{font-family:'Chakra Petch';font-size:14px;font-weight:600;line-height:1.35}
+  .quest.on .qtitle{color:var(--mut);text-decoration:line-through;text-decoration-color:#2f4a38}
+  .qtag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+        padding:2px 7px;border-radius:5px;margin:0 4px 5px 0}
+  .t-prog{background:var(--blue-soft);color:#7db6ff}
+  .t-emp{background:#3d2a12;color:#ffb95e}
+  .t-enem{background:#33203f;color:#d19bff}
+  .t-marco{background:#123528;color:#5ce6a0}
+  .t-care{background:#3a1530;color:#ff9ad5}
+  .t-anti{background:#301226;color:#ff8fb0}
+  .t-game{background:#0f2d3d;color:#5fd0ff}
+  .t-atraso{background:#3d1414;color:#ff9d9d}
+  .t-bonus{background:#2e2a12;color:#ffe38f}
+  .qsub{font-size:12px;color:var(--mut);margin-top:3px;line-height:1.4}
+  .mission{border-style:dashed}
+  .mission .box{border-radius:50%}
+
+  .cycle-done{background:linear-gradient(180deg,#14251b,#12202b);border:1px solid #245238;border-radius:var(--r);
+              padding:16px;text-align:center;font-size:13px;line-height:1.5}
+  .cycle-done b{font-family:'Chakra Petch';color:var(--green)}
+  .agenda{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-top:10px}
+  .agenda .row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dashed var(--line)}
+  .agenda .row:last-child{border-bottom:none}
+  .agenda .dia{color:var(--amber);font-family:'Chakra Petch';font-size:11px}
+  .agenda h3{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+
+  .dots{display:flex;gap:8px;margin-top:4px}
+  .dot{width:30px;text-align:center}
+  .dot i{display:block;width:12px;height:12px;border-radius:50%;background:#232c3d;margin:0 auto 4px;font-style:normal}
+  .dot i.full{background:var(--green)} .dot i.part{background:var(--amber)}
+  .dot i.today{outline:2px solid var(--blue);outline-offset:2px}
+  .dot span{font-size:10px;color:var(--mut)}
+
+  .banner{background:#2b1d10;border:1px solid #5a3d1a;color:#ffcf8f;font-size:12px;
+          border-radius:10px;padding:10px 12px;margin-bottom:14px;display:none;line-height:1.4}
+  details{margin:14px 0 6px}
+  .past-sum{font-family:'Chakra Petch';font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+            color:var(--mut);cursor:pointer;padding:8px 0;list-style:none}
+  .past-sum::-webkit-details-marker{display:none}
+  .past-sum::before{content:"▸ ";color:var(--blue)}
+  details[open] .past-sum::before{content:"▾ "}
+  .foot{margin-top:26px;text-align:center;font-size:11px;color:var(--mut);line-height:1.6}
+  @media (prefers-reduced-motion: reduce){.fill{transition:none}.m-hi .mascote,.m-ok .mascote{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="banner" id="banner">⚠ Modo demonstração: aqui dentro do Claude o progresso não fica salvo — por isso a Brasa não perde vida nem lembra de ontem. No site publicado (GitHub Pages), tudo funciona de verdade.</div>
+
+  <div class="top">
+    <div>
+      <div class="brand">▮ Quest Log v3</div>
+      <h1>Missões do Eder</h1>
+      <div class="greet" id="greet"></div>
+    </div>
+    <div class="datebadge">
+      <div class="clock" id="clock">--:--</div>
+      <div class="datesm" id="dateStr"></div>
+    </div>
+  </div>
+
+  <!-- MASCOTE BRASA -->
+  <div class="pet" id="petCard">
+    <svg class="mascote" viewBox="0 0 104 118" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="fogo" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffd24a"/><stop offset="45%" stop-color="#ff8c2b"/><stop offset="100%" stop-color="#ff5722"/>
+        </linearGradient>
+        <linearGradient id="nucleo" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fff3c4"/><stop offset="100%" stop-color="#ffca5f"/>
+        </linearGradient>
+      </defs>
+      <!-- corpo chama -->
+      <path id="corpo" fill="url(#fogo)" d="M52 4 C58 22 78 28 80 52 C82 76 70 100 52 108 C34 100 22 76 24 52 C26 28 46 22 52 4 Z"/>
+      <path id="miolo" fill="url(#nucleo)" d="M52 40 C56 52 66 56 66 72 C66 88 60 98 52 102 C44 98 38 88 38 72 C38 56 48 52 52 40 Z"/>
+      <!-- rosto -->
+      <g id="rosto">
+        <g id="olhos-vivos">
+          <circle cx="44" cy="72" r="4.2" fill="#2a1600"/>
+          <circle cx="60" cy="72" r="4.2" fill="#2a1600"/>
+          <circle cx="45.4" cy="70.6" r="1.4" fill="#fff"/>
+          <circle cx="61.4" cy="70.6" r="1.4" fill="#fff"/>
+        </g>
+        <g id="olhos-x" style="display:none" stroke="#2a1600" stroke-width="2.6" stroke-linecap="round">
+          <path d="M40 68 l8 8 M48 68 l-8 8"/><path d="M56 68 l8 8 M64 68 l-8 8"/>
+        </g>
+        <path id="boca-feliz" d="M44 84 Q52 92 60 84" stroke="#2a1600" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+        <path id="boca-reta" d="M45 86 L59 86" stroke="#2a1600" stroke-width="2.8" fill="none" stroke-linecap="round" style="display:none"/>
+        <path id="boca-triste" d="M44 90 Q52 82 60 90" stroke="#2a1600" stroke-width="2.8" fill="none" stroke-linecap="round" style="display:none"/>
+      </g>
+    </svg>
+    <div class="pet-name">Brasa <span class="lvl" id="lvl">Nv. 1</span></div>
+    <div class="mood" id="mood"></div>
+    <div class="hp"><i id="hpBar" style="width:100%"></i></div>
+    <div class="hp-lbl"><span>Vida da Brasa</span><span id="hpTxt">100</span></div>
+    <div id="reviveBox"></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="lbl">🔥 Sequência</div>
+      <div class="val zero" id="streak">0 dias</div>
+      <div class="sub">dias completos seguidos</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Fase atual</div>
+      <div class="val" style="font-size:15px;color:var(--txt)" id="weekN"></div>
+      <div class="sub" id="weekT"></div>
+    </div>
+  </div>
+
+  <div class="xp">
+    <div class="xp-head"><b>Progresso de hoje</b><span id="xpCount">0/0</span></div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+    <div class="xp-msg" id="xpMsg"></div>
+    <h2 style="margin:14px 0 8px">Últimos 7 dias</h2>
+    <div class="dots" id="dots"></div>
+  </div>
+
+  <div id="periods"></div>
+
+  <h2>🕐 Qualquer hora</h2><div id="p-any"></div>
+
+  <h2>📅 Missões da semana <span style="font-size:10px;letter-spacing:0" id="cycleInfo"></span></h2>
+  <div id="weekly"></div>
+  <div class="agenda">
+    <h3>Programação fixa da semana</h3>
+    <div id="agenda"></div>
+  </div>
+
+  <div class="foot">
+    A Brasa se alimenta das suas missões. Dia completo = ela cresce.<br>
+    Dias ignorados = ela enfraquece. Se apagar, renasce lembrando de vocês.<br>
+    <span style="opacity:.7">Comprou os produtos de skincare? Me avisa no chat que eu adiciono a rotina aqui.</span>
+  </div>
+</div>
+
+<script>
+/* ======== CONFIG ======== */
+const TAGS={prog:["t-prog","Programação"],emp:["t-emp","Emprego"],enem:["t-enem","ENEM"],
+  marco:["t-marco","Marco"],care:["t-care","Autocuidado"],anti:["t-anti","Anti-scroll"],
+  game:["t-game","Gamer"],bonus:["t-bonus","Recompensa"]};
+const DIAS=["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+const DIAS_AB=["dom","seg","ter","qua","qui","sex","sáb"];
+
+/* Períodos: manhã 7-11:59, tarde 12-17:59, noite 18-23:59, madrugada 0-6:59 */
+function periodNow(h){return h>=7&&h<12?"manha":h>=12&&h<18?"tarde":h>=18?"noite":"madruga"}
+const PERIOD_ORDER={manha:0,tarde:1,noite:2};
+const PERIOD_META={manha:["🌅 Manhã","7h às 11h59"],tarde:["☀️ Tarde","12h às 17h59"],noite:["🌙 Noite","18h às 23h59"]};
+
+/* ======== PLANO (Futuro) — cada tarefa com período ======== */
+const WEEKS=[
+ {start:"2026-06-28",n:"Semana 0",t:"Reta final do SENAI",
+  daily:[{id:"senai",tag:"prog",p:"tarde",days:[1,2,3,4,5],l:"Ir à aula do SENAI",s:"Seg a sex. Fechar o curso com chave de ouro."}],
+  miss:[{id:"sites",tag:"emp",l:"Criar contas: Indeed, InfoJobs, Gupy e Catho",s:"Meia hora e as vagas chegam até você."},
+        {id:"alertas",tag:"emp",l:"Ativar alertas de vaga",s:"Suporte N1, help desk, assistente de TI — Salvador e Lauro de Freitas."}]},
+ {start:"2026-07-05",n:"Semana 1",t:"HTML — Arrancada",
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"Buscar e candidatar vagas",s:"Usesoft, Redemix, MVS, Lanlink, Montreal, Konecta, Wilson Sons, Irmã Dulce, Salvador Shopping, Just Travel."},
+         {id:"prog",tag:"prog",p:"tarde",l:"Curso HTML/CSS: próxima aula (Módulo A, 1–8)",s:"Curso em Vídeo, Guanabara. Código na mão."}],
+  miss:[{id:"linkedin",tag:"marco",l:"Arrumar o LinkedIn (uma tarde inteira)",s:"Foto boa, título pronto, Open to Work, seguir as 10 empresas."},
+        {id:"lista",tag:"emp",l:"Candidatar nas 10 empresas da lista",s:"Com o currículo de TI."}]},
+ {start:"2026-07-12",n:"Semana 2",t:"HTML — parte 2",
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:"Responder recrutador em menos de 24h."},
+         {id:"prog",tag:"prog",p:"tarde",l:"Curso HTML: Módulo A, aulas 9–16",s:""}],
+  miss:[{id:"github",tag:"marco",l:"Criar conta no GitHub (15 min)",s:"Usuário profissional, foto e bio de 1 linha."},
+        {id:"red0",tag:"enem",l:"Ler 1 redação nota 1000 comentada",s:""}]},
+ {start:"2026-07-19",n:"Semana 3",t:"Fechando HTML, abrindo CSS",
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:""},
+         {id:"prog",tag:"prog",p:"tarde",l:"Fechar Módulo A + começar CSS",s:"Cores, fontes, seletores."}],
+  miss:[{id:"red1",tag:"enem",l:"Escrever a 1ª redação (1h cronometrada)",s:"Vai sair ruim — é pra isso que serve."}]},
+ {start:"2026-07-26",n:"Semana 4",t:"CSS + Portfólio v1",
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:""},
+         {id:"prog",tag:"prog",p:"tarde",l:"CSS: box model + montar a página pessoal",s:""}],
+  miss:[{id:"pagina1",tag:"marco",l:"MARCO: Página pessoal v1 pronta",s:"100% na mão, sem IA. Feia mesmo."},
+        {id:"red2",tag:"enem",l:"2ª redação",s:""}]},
+ {start:"2026-08-02",n:"Semana 5",t:"JavaScript começa",
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:""},
+         {id:"prog",tag:"prog",p:"tarde",l:"Curso JS: Módulos A e B",s:"Você já sabe quase tudo isso do C."},
+         {id:"enem",tag:"enem",p:"noite",l:"Matemática 30 min",s:"Porcentagem, regra de três (Prof. Ferretto)."}],
+  miss:[{id:"beec",tag:"prog",l:"3 problemas do beecrowd em C",s:"Categoria Iniciante."}]},
+ {start:"2026-08-09",n:"Semana 6",t:"JS — condições",
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:""},
+         {id:"prog",tag:"prog",p:"tarde",l:"JS: if/else e switch",s:"Sintaxe quase idêntica ao C."},
+         {id:"enem",tag:"enem",p:"noite",l:"Matemática 30 min (funções)",s:""}],
+  miss:[{id:"beejs",tag:"marco",l:"Traduzir os 3 problemas de C pra JS",s:"O exercício mais valioso do plano."},
+        {id:"red3",tag:"enem",l:"3ª redação",s:""}]},
+ {start:"2026-08-16",n:"Semana 7",t:"JS — loops e arrays",
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:""},
+         {id:"prog",tag:"prog",p:"tarde",l:"JS: while, for e vetores",s:""},
+         {id:"enem",tag:"enem",p:"noite",l:"Matemática 30 min",s:""}],
+  miss:[{id:"bee4",tag:"prog",l:"4 problemas novos no beecrowd em JS",s:""},
+        {id:"siml",tag:"enem",l:"Mini-simulado de linguagens (20 questões)",s:""}]},
+ {start:"2026-08-23",n:"Semana 8",t:"JS + Portfólio no GitHub",
+  daily:[{id:"emp",tag:"emp",p:"manha",days:[1,2,3,4,5],l:"5 candidaturas hoje",s:""},
+         {id:"prog",tag:"prog",p:"tarde",l:"JS: funções + DOM",s:"Fazer um botão da sua página funcionar."},
+         {id:"enem",tag:"enem",p:"noite",l:"Matemática 30 min",s:""}],
+  miss:[{id:"pagina2",tag:"marco",l:"MARCO: Página v2 + tudo no GitHub",s:"Página + TechBridge com README."},
+        {id:"red4",tag:"enem",l:"4ª redação",s:""}]},
+ {start:"2026-08-30",n:"Semana 9",t:"Virada: ENEM assume",
+  daily:[{id:"prog",tag:"prog",p:"tarde",l:"Beecrowd 30 min (JS)",s:"Modo manutenção."},
+         {id:"enem",tag:"enem",p:"tarde",l:"ENEM 1h: geometria + estatística",s:""}],
+  miss:[{id:"recand",tag:"emp",l:"Revisar candidaturas paradas",s:""}]},
+ {start:"2026-09-06",n:"Semana 10",t:"ENEM — natureza",
+  daily:[{id:"prog",tag:"prog",p:"tarde",l:"Beecrowd 30 min",s:""},
+         {id:"enem",tag:"enem",p:"tarde",l:"ENEM 1h: física + química",s:""}],
+  miss:[{id:"red5",tag:"enem",l:"5ª redação",s:""}]},
+ {start:"2026-09-13",n:"Semana 11",t:"ENEM — humanas + GitHub final",
+  daily:[{id:"prog",tag:"prog",p:"tarde",l:"Beecrowd 30 min",s:""},
+         {id:"enem",tag:"enem",p:"tarde",l:"ENEM 1h: humanas + matemática",s:""}],
+  miss:[{id:"readme",tag:"marco",l:"MARCO: README do TechBridge + link no currículo e LinkedIn",s:""}]},
+ {start:"2026-09-20",n:"Semana 12",t:"Simulado completo",
+  daily:[{id:"enem",tag:"enem",p:"tarde",l:"ENEM 1h: revisão livre",s:""}],
+  miss:[{id:"simulado",tag:"marco",l:"MARCO FINAL: 1º simulado completo do ENEM",s:"Tempo real, sem celular."}]},
+ {start:"2026-09-27",n:"Modo ENEM",t:"Foco total até a prova",
+  daily:[{id:"enem",tag:"enem",p:"tarde",l:"ENEM: 1h+ nos assuntos que mais erra",s:""}],
+  miss:[{id:"simsem",tag:"enem",l:"Simulado do fim de semana",s:""},
+        {id:"redsem",tag:"enem",l:"Redação da semana",s:""}]},
+];
+
+/* ======== AUTOCUIDADO DIÁRIO (com período) ======== */
+const CARE_DAILY=[
+ {id:"dente-m",tag:"care",p:"manha",l:"Escovar os dentes ao acordar",s:""},
+ {id:"banho-m",tag:"care",p:"manha",l:"Banho da manhã",s:"Começar o dia limpo muda o dia."},
+ {id:"dente-t",tag:"care",p:"tarde",l:"Escovar os dentes após o almoço",s:""},
+ {id:"banho-t",tag:"care",p:"tarde",l:"Banho da tarde",s:"Calor de Salvador não perdoa."},
+ {id:"scroll",tag:"anti",p:"tarde",l:"Scroll do bem: 10–15 min de conteúdo que agrega",s:"TikTok/Insta, mas de tech, ENEM ou inglês. Sim, você vai odiar. Sim, funciona."},
+ {id:"banho-n",tag:"care",p:"noite",l:"Banho da noite (de verdade, não de gato)",s:"Com calma. Você merece 10 minutos seus."},
+ {id:"dente-n",tag:"care",p:"noite",l:"Escovar os dentes antes de dormir",s:"O mais importante do dia pros dentes."},
+ {id:"dormir",tag:"game",p:"noite",l:"Desligar tudo até 00h (PS4, call, celular)",s:"Jogar é de boa — virar a noite é o que rouba seu futuro. Essa missão alimenta MUITO a Brasa."},
+];
+/* Recompensa (não conta pra completar o dia) */
+const BONUS=[
+ {id:"ps4",tag:"bonus",p:"noite",l:"🎮 Jogar PS4 em paz",s:"Liberado sem culpa quando o dia estiver completo. Você mereceu.",bonus:true},
+];
+/* SKINCARE: quando o Eder comprar os produtos, adicionar a rotina aqui (me avisar no chat). */
+
+/* ======== TAREFAS PROGRAMADAS (dias fixos) ======== */
+const CHORES=[
+ {id:"cabelo",tag:"care",l:"Lavar o cabelo",days:[3,6],s:""},                       /* qua e sáb */
+ {id:"quarto-r",tag:"care",l:"Arrumação rápida do quarto (10 min)",days:[3],s:""},   /* qua */
+ {id:"quarto-f",tag:"care",l:"Faxina do quarto",days:[6],s:"Capricha: roupa, cama, chão."}, /* sáb */
+ {id:"depil",tag:"care",l:"Depilação / se aparar",days:[0],s:"Toda semana."}, /* domingo */
+];
+
+/* ======== ESTADO ======== */
+const KEY="brasa-eder";
+let demoMode=false, mem={};
+function lsGet(){try{const v=localStorage.getItem(KEY);return v?JSON.parse(v):null}catch(e){demoMode=true;return mem[KEY]||null}}
+function lsSet(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){demoMode=true;mem[KEY]=v}}
+let state=lsGet()||{daily:{},weekly:{},chores:{},born:null,revivedAt:null,deaths:0};
+
+const now=new Date();
+const today=new Date(now);today.setHours(0,0,0,0);
+const iso=d=>{const x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10)};
+const TODAY=iso(today);
+if(!state.born){state.born=TODAY;lsSet(state)}
+if(demoMode)document.getElementById("banner").style.display="block";
+
+function weekOf(d){let w=WEEKS[0];for(const wk of WEEKS){if(new Date(wk.start+"T00:00:00")<=d)w=wk}return w}
+const WK=weekOf(today),weekKey=WK.start;
+const el=id=>document.getElementById(id);
+
+/* semana-calendário (dom a sáb) da data */
+function sundayOf(d){const x=new Date(d);x.setDate(x.getDate()-x.getDay());x.setHours(0,0,0,0);return x}
+function weekIndex(d){return Math.floor((sundayOf(d)-new Date("2026-06-28T00:00:00"))/(7*864e5))}
+
+/* ocorrências de chores numa data */
+function choresOn(dateIso){
+  const d=new Date(dateIso+"T00:00:00");
+  return CHORES.filter(c=>{
+    if(!c.days.includes(d.getDay()))return false;
+    if(c.biweekly&&weekIndex(d)%2!==0)return false;
+    return true;
+  }).map(c=>({...c,occ:dateIso+"_"+c.id}));
+}
+/* chores atrasadas: agendadas em dia anterior desta semana-calendário e não feitas */
+function overdueChores(){
+  const sun=sundayOf(today);const out=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(sun);d.setDate(d.getDate()+i);
+    if(iso(d)>=TODAY)break;
+    choresOn(iso(d)).forEach(c=>{if(!state.chores[c.occ])out.push({...c,late:DIAS_AB[d.getDay()]})});
+  }
+  return out;
+}
+
+/* conjunto exigido do dia (para vida/sequência) */
+function activeOn(q,wd){return !q.days||q.days.includes(wd)}
+function requiredOf(dateIso){
+  const d=new Date(dateIso+"T00:00:00"),wd=d.getDay();
+  return [...weekOf(d).daily,...CARE_DAILY].filter(q=>activeOn(q,wd)).concat(choresOn(dateIso));
+}
+function doneCount(dateIso){
+  const c=state.daily[dateIso]||[];
+  let n=0;
+  requiredOf(dateIso).forEach(q=>{
+    if(q.occ){if(state.chores[q.occ])n++}
+    else if(c.includes(q.id))n++;
+  });
+  return n;
+}
+function dayStatus(dateIso){
+  const total=requiredOf(dateIso).length;
+  if(!total)return null;
+  const done=doneCount(dateIso);
+  if(done===0)return"none";
+  return done>=total?"full":(done/total>=0.5?"part":"low");
+}
+
+/* ======== RELÓGIO ======== */
+function tick(){
+  const n=new Date();
+  el("clock").textContent=n.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  el("dateStr").textContent=n.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
+  const h=n.getHours();
+  el("greet").textContent=h<5?"Madrugada?? A Brasa quer te ver dormindo.":h<12?"Bom dia, Eder ☀":h<18?"Boa tarde, Eder":"Boa noite, Eder 🌙";
+}
+tick();setInterval(tick,30000);
+
+/* ======== VIDA ======== */
+function computeHealth(){
+  const startIso=state.revivedAt||state.born;let hp=100;
+  const d=new Date(startIso+"T00:00:00");
+  while(iso(d)<TODAY){
+    const s=dayStatus(iso(d));
+    if(s==="full")hp=Math.min(100,hp+15);
+    else if(s==="part")hp=Math.max(0,hp-5);
+    else if(s==="low")hp=Math.max(0,hp-12);
+    else if(s==="none")hp=Math.max(0,hp-25);
+    if(hp<=0)return 0;
+    d.setDate(d.getDate()+1);
+  }
+  const t=dayStatus(TODAY);
+  if(t==="full")hp=Math.min(100,hp+15);
+  else if(t==="part")hp=Math.min(100,hp+5);
+  return hp;
+}
+function totalChecks(){
+  let n=0;
+  for(const k in state.daily)n+=state.daily[k].length;
+  for(const k in state.weekly)n+=state.weekly[k].length*2;
+  for(const k in state.chores)if(state.chores[k])n++;
+  return n;
+}
+function level(){return 1+Math.floor(totalChecks()*10/150)}
+
+function setFace(mode){
+  const show=(id,on)=>document.getElementById(id).style.display=on?"":"none";
+  show("olhos-vivos",mode!=="dead");show("olhos-x",mode==="dead");
+  show("boca-feliz",mode==="hi");show("boca-reta",mode==="ok");show("boca-triste",mode==="low"||mode==="dead");
+}
+function renderPet(){
+  const hp=computeHealth();
+  el("hpBar").style.width=hp+"%";el("hpBar").classList.toggle("crit",hp<30&&hp>0);
+  el("hpTxt").textContent=hp;
+  el("lvl").textContent="Nv. "+level()+(state.deaths?` • ${state.deaths+1}ª vida`:"");
+  el("reviveBox").innerHTML="";
+  const card=el("petCard");card.className="pet";
+  if(hp<=0){
+    card.classList.add("m-dead");setFace("dead");
+    el("mood").textContent="A Brasa apagou… mas guarda tudo que vocês viveram.";
+    const b=document.createElement("button");b.className="revive";b.textContent="🔥 Reacender a Brasa";
+    b.onclick=()=>{state.deaths++;state.revivedAt=TODAY;lsSet(state);renderAll();
+      setTimeout(()=>alert(`A Brasa renasceu no nível ${level()}! Ela lembra de tudo — só a chama recomeça. Sequência zerada, experiência mantida. Bora de novo?`),200)};
+    el("reviveBox").appendChild(b);
+  }else if(hp>=70){card.classList.add("m-hi");setFace("hi");
+    el("mood").textContent=hp===100?"Brasa no auge! Tá orgulhosa de você.":"Brasa forte e dançando.";}
+  else if(hp>=30){card.classList.add("m-ok");setFace("ok");
+    el("mood").textContent="Brasa tá ok, mas sentiu sua falta esses dias…";}
+  else{card.classList.add("m-low");setFace("low");
+    el("mood").textContent="Brasa fraquinha… uma missão hoje já reanima ela.";}
+}
+
+/* ======== CARDS ======== */
+function questCard(q,on,onToggle,opts={}){
+  const d=document.createElement("div");
+  d.className="quest"+(on?" on":"")+(opts.mission?" mission":"")+(opts.locked?" locked":"");
+  const[cls,name]=TAGS[q.tag]||TAGS.prog;
+  const extra=(opts.late?`<span class="qtag t-atraso">atrasada · era ${opts.late}</span>`:"")+
+              (opts.diaLbl?`<span class="qtag t-atraso" style="background:#232c3d;color:#9fb2d0">${opts.diaLbl}</span>`:"");
+  d.innerHTML=`<div class="box">✓</div><div><span class="qtag ${cls}">${name}</span>${extra}
+    <div class="qtitle">${q.l}</div>${q.s?`<div class="qsub">${q.s}</div>`:""}
+    ${opts.locked?`<div class="qsub">🔒 libera ${opts.lockMsg}</div>`:""}</div>`;
+  if(!opts.locked)d.onclick=()=>{onToggle();if(!on)feedFx(d)};
+  return d;
+}
+function feedFx(card){
+  const f=document.createElement("div");f.className="feed";f.textContent="+10 🔥";
+  f.style.left="50%";f.style.top="4px";card.appendChild(f);setTimeout(()=>f.remove(),1000);
+}
+
+function renderPeriods(){
+  const h=new Date().getHours(),cur=periodNow(h);
+  const dChecked=state.daily[TODAY]||[];
+  const cont=el("periods");cont.innerHTML="";el("p-any").innerHTML="";
+
+  const cardOf=q=>{
+    const on=q.occ?!!state.chores[q.occ]:dChecked.includes(q.id);
+    const toggle=q.occ?()=>toggleChore(q.occ):()=>toggleDaily(q.id);
+    return questCard(q,on,toggle,{late:q.late});
+  };
+  const wd=today.getDay();
+  const tasksOf=p=>{
+    const t=[...WK.daily,...CARE_DAILY].filter(q=>(q.p||"any")===p&&activeOn(q,wd));
+    if(p==="noite")t.push(...BONUS);
+    return t;
+  };
+  const doneOf=list=>list.filter(q=>!q.bonus&&(q.occ?state.chores[q.occ]:dChecked.includes(q.id))).length;
+
+  if(cur==="madruga"){
+    cont.innerHTML=`<div class="cycle-done" style="border-color:#3a2a5a;background:linear-gradient(180deg,#1c1830,#131b22)">
+      <b style="color:#b184ff">🌌 Madrugada</b><br>
+      Nada de missão agora — a única missão é DORMIR.<br>
+      <span style="color:var(--mut)">A Brasa também dorme. As tarefas da manhã sobem às 7h.</span></div>`;
+  }else{
+    for(const p of ["manha","tarde","noite"]){
+      const[titulo,faixa]=PERIOD_META[p];
+      const list=tasksOf(p);
+      if(!list.length)continue;
+      if(PERIOD_ORDER[p]<PERIOD_ORDER[cur]){
+        // período que já passou: recolhido, mas marcável
+        const req=list.filter(q=>!q.bonus);
+        const det=document.createElement("details");
+        det.innerHTML=`<summary class="past-sum">${titulo} — ${doneOf(req)}/${req.length} feitas · toca pra abrir</summary>`;
+        list.forEach(q=>det.appendChild(cardOf(q)));
+        cont.appendChild(det);
+      }else if(p===cur){
+        // período atual: aberto
+        const t=document.createElement("h2");t.innerHTML=`${titulo} <span style="font-size:10px;letter-spacing:0">· agora (${faixa})</span>`;
+        cont.appendChild(t);
+        list.forEach(q=>cont.appendChild(cardOf(q)));
+      }else{
+        // período futuro: só o aviso
+        const hint=document.createElement("div");
+        hint.className="qsub";hint.style.padding="2px 2px 10px";
+        hint.textContent=`${titulo} sobe às ${p==="tarde"?"12h":"18h"} — ${list.filter(q=>!q.bonus).length} missão(ões) esperando.`;
+        cont.appendChild(hint);
+      }
+    }
+  }
+  // qualquer hora: banho etc. + chores de hoje + atrasadas
+  [...WK.daily,...CARE_DAILY].filter(q=>(q.p||"any")==="any"&&activeOn(q,today.getDay())).forEach(q=>el("p-any").appendChild(cardOf(q)));
+  choresOn(TODAY).forEach(q=>el("p-any").appendChild(cardOf({...q}))); 
+  overdueChores().forEach(q=>el("p-any").appendChild(cardOf({...q})));
+  if(!el("p-any").children.length)
+    el("p-any").innerHTML='<div class="qsub" style="padding:2px 2px 6px">Nada por aqui hoje.</div>';
+}
+
+/* ======== SEMANAIS COM CICLO ======== */
+function renderWeekly(){
+  const wChecked=state.weekly[weekKey]||[];
+  const list=WK.miss;
+  const pend=list.filter(q=>!wChecked.includes(q.id));
+  const box=el("weekly");box.innerHTML="";
+  const nextSun=new Date(sundayOf(today));nextSun.setDate(nextSun.getDate()+7);
+  const daysLeft=Math.round((nextSun-today)/864e5);
+  el("cycleInfo").textContent=`· ciclo fecha em ${daysLeft} dia${daysLeft>1?"s":""}`;
+  if(!pend.length){
+    box.innerHTML=`<div class="cycle-done"><b>✔ Ciclo da semana fechado!</b><br>
+      Todas as ${list.length} missões concluídas. Novas missões sobem em ${daysLeft} dia${daysLeft>1?"s":""} (domingo).<br>
+      <span style="color:var(--mut)">Você tem a semana toda ou pode fazer tudo num dia — do seu jeito.</span></div>`;
+  }else{
+    pend.forEach(q=>box.appendChild(questCard(q,false,()=>toggleWeekly(q.id),{mission:true})));
+    if(wChecked.length){
+      const done=document.createElement("div");
+      done.className="qsub";done.style.padding="4px 2px";
+      done.textContent=`✔ ${wChecked.length} de ${list.length} concluídas neste ciclo.`;
+      box.appendChild(done);
+    }
+  }
+  // agenda fixa
+  const ag=el("agenda");ag.innerHTML="";
+  CHORES.forEach(c=>{
+    const dias=c.days.map(d=>DIAS[d]).join(" e ")+(c.biweekly?" (semana sim, semana não)":"");
+    const row=document.createElement("div");row.className="row";
+    row.innerHTML=`<span>${c.l}</span><span class="dia">${dias}</span>`;
+    ag.appendChild(row);
+  });
+}
+
+/* ======== PROGRESSO / STREAK / DOTS ======== */
+function renderXP(){
+  const total=requiredOf(TODAY).length,done=doneCount(TODAY);
+  el("xpCount").textContent=done+"/"+total;
+  const pct=total?Math.round(done/total*100):0;
+  const f=el("fill");f.style.width=pct+"%";f.classList.toggle("done",pct===100);
+  const m=el("xpMsg"),h=new Date().getHours();
+  if(pct===100){m.textContent="✔ Dia completo! Brasa alimentada. PS4 liberado sem culpa. 🎮";m.className="xp-msg win";}
+  else if(h>=20){m.textContent="⏰ Passou das 20h e ainda faltam missões. A Brasa tá de olho…";m.className="xp-msg late";}
+  else if(pct>0){m.textContent="Boa! Continua que a Brasa agradece.";m.className="xp-msg";}
+  else{m.textContent="Nenhuma missão ainda. Começa pela mais fácil do período atual!";m.className="xp-msg";}
+}
+function renderStreak(){
+  let s=0;const cur=new Date(today);
+  if(dayStatus(iso(cur))!=="full")cur.setDate(cur.getDate()-1);
+  while(dayStatus(iso(cur))==="full"){s++;cur.setDate(cur.getDate()-1)}
+  const e=el("streak");e.textContent=s+(s===1?" dia":" dias");e.classList.toggle("zero",s===0);
+}
+function renderDots(){
+  const box=el("dots");box.innerHTML="";
+  for(let i=6;i>=0;i--){
+    const d=new Date(today);d.setDate(d.getDate()-i);
+    const st=dayStatus(iso(d));
+    const dot=document.createElement("div");dot.className="dot";
+    dot.innerHTML=`<i class="${st==="full"?"full":(st==="part"||st==="low")?"part":""}${i===0?" today":""}"></i><span>${DIAS_AB[d.getDay()]}</span>`;
+    box.appendChild(dot);
+  }
+}
+
+function renderAll(){
+  el("weekN").textContent=WK.n;el("weekT").textContent=WK.t;
+  renderPeriods();renderWeekly();renderXP();renderStreak();renderDots();renderPet();
+}
+function toggleDaily(id){
+  const a=state.daily[TODAY]||(state.daily[TODAY]=[]);
+  const i=a.indexOf(id);i>=0?a.splice(i,1):a.push(id);
+  lsSet(state);renderAll();
+}
+function toggleWeekly(id){
+  const a=state.weekly[weekKey]||(state.weekly[weekKey]=[]);
+  const i=a.indexOf(id);i>=0?a.splice(i,1):a.push(id);
+  lsSet(state);renderAll();
+}
+function toggleChore(occ){
+  state.chores[occ]=!state.chores[occ];
+  if(!state.chores[occ])delete state.chores[occ];
+  lsSet(state);renderAll();
+}
+renderAll();
+setInterval(renderAll,60000); /* atualiza períodos/bloqueios sozinho */
+</script>
+</body>
+</html>
